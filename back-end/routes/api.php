@@ -16,14 +16,13 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::middleware('auth:sanctum')->group( function () {
+    Route::post('/cadastro/tarefa', [TarefasController::class, 'store']);
+    Route::get('/index/tarefa/{id}', [TarefasController::class, 'index']);
+    Route::put('/update/tarefa/{id}', [TarefasController::class, 'update']);
+    Route::get('/token', [TarefasController::class, 'token']);
+    Route::get('/logout', [UserController::class, 'logout']);
+    Route::get('/perfil', [UserController::class, 'perfil']);
 });
-Route::post('/cadastro/tarefa', [TarefasController::class, 'store']);
-Route::get('/index/tarefa/{id}', [TarefasController::class, 'index']);
-Route::put('/update/tarefa/{id}', [TarefasController::class, 'update']);
-
-
 Route::post('/store/user', [UserController::class, 'store']);
-Route::get('/login', [UserController::class, 'login']);
-Route::get('/token', [TarefasController::class, 'token']);
+Route::post('/login', [UserController::class, 'login']);

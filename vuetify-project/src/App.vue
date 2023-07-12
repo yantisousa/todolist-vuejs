@@ -19,6 +19,8 @@
           <v-divider :thickness="2"></v-divider>
           <v-list-item><router-link style="text-decoration: none;" to="/cadastro">Cadastrar Tarefa</router-link></v-list-item>
           <v-divider :thickness="2"></v-divider>
+          <v-list-item @click="logout()">Sair da conta</v-list-item>
+          <v-divider :thickness="2"></v-divider>
           <v-list-item><v-switch label="Modo Escuro" @click="mudarParaModoEscuro"
               v-model="checkbox"></v-switch></v-list-item>
         </v-list>
@@ -29,6 +31,7 @@
 </template>
 <script >
 import { defineComponent } from 'vue'
+import axios from 'axios'
 export default defineComponent({
   name: 'App',
   data() {
@@ -47,6 +50,11 @@ export default defineComponent({
         this.classeParaModoEscuro = ''
       }
     },
+    logout () {
+      axios.get('http://127.0.0.1:8000/api/logout').then(respose => {
+        console.log('deslogou');
+      })
+    }
   }
 })
 

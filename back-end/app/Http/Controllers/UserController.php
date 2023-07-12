@@ -15,10 +15,20 @@ class UserController extends Controller
     public function login(Request $request)
     {
         if(Auth::attempt(['email' => $request->email, 'password' => $request->password])){
-            $user = Auth::user();
-            dd($user);
-            // $token = $user->createToken('jwt');
-            
+            $token = $request->user()->createToken('jwt');
+            return response()->json(['token' => $token->plainTextToken]);
         }
+    }
+    public function logout(Request $request)
+    {
+       $user = $request->user();
+       $user->tokens()->delete();
+       return response()->json([], 204);
+    }
+    public function perfil(Request $request)
+    {
+        $user = Auth::user();
+        dd($user);
+        return response()->json($user);
     }
 }

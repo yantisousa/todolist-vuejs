@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tarefas;
+use App\Models\User;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Contracts\Session\Session;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Response as FacadesResponse;
 use Illuminate\Support\Facades\Session as FacadesSession;
 
@@ -24,7 +26,8 @@ class TarefasController extends Controller
     
     public function index($id) 
     {
-        $tarefas = Tarefas::whereStatus($id)->get();
+        dd(Auth::user());
+        $tarefas = Tarefas::whereStatus($id)->where('user_id', Auth::user())->get();
         return response()->json($tarefas);
     }
 

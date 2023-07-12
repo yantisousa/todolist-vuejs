@@ -28,6 +28,7 @@
 <script>
 import axios from 'axios';
 import { defineComponent } from 'vue';
+import {useStore} from 'vuex'
 export default defineComponent({
     name: 'Login',
     data() {
@@ -41,20 +42,26 @@ export default defineComponent({
         this.token()
     },
     methods: {
+        token () {
+            axios.get('http://127.0.0.1:8000/sanctum/csrf-cookie').then(response => {
+
+            })
+        },
         login() {
-            axios.get('http://127.0.0.1:8000/api/login', {
-                _token: this._token,
+            axios.post('http://127.0.0.1:8000/api/login', {
                 email: this.email,
                 password: this.password
             }).then(response => {
-                console.log(response.data);
+                this.store.commit('INSERE_USUARIO_LOGADO', response.data)
+                console.log(this.store.state);
+                this.$router.push('/')
             })
-        },
-        token () {
-            axios.get('http://127.0.0.1:8000/api/token').then(response => {
-                this._token = response.data._token
-
-            })
+        }
+    },
+    setup (){
+        const store = useStore();
+        return {
+            store
         }
     }
 })

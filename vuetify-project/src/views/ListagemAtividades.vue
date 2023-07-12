@@ -64,7 +64,7 @@ export default defineComponent({
       cronometro: '',
       tempoInicial: 0,
       tempoFinal: '',
-      _token: ''
+      _token: '',
     }
   },
   mounted() {
@@ -73,7 +73,8 @@ export default defineComponent({
   },
   methods: {
     exibirAtividadesPorStatus() {
-      axios.get(`http://127.0.0.1:8000/api/index/tarefa/${this.tab}`).then(response => {
+      axios.get(`http://127.0.0.1:8000/api/index/tarefa/${this.tab}`,{
+      }).then(response => {
         this.tarefas = response.data
       })
 

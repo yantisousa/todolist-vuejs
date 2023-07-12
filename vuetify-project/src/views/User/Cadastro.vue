@@ -39,19 +39,34 @@ export default defineComponent({
         return {
             nome: '',
             email: '',
-            password: ''
+            password: '',
+            _token: ''
         }
     },
+    mounted (){
+        this.token()
+    },
     methods: {
+        async token () {
+            await axios.get('http://127.0.0.1:8000/sanctum/csrf-cookie',
+            {
+                withCredentials: true
+            }
+            ).then(response => {
+                console.log(response.data);
+                
+            })
+        },
         cadastrar() {
             axios.post('http://127.0.0.1:8000/api/store/user', {
+             
                 name: this.nome, 
                 email: this.email,
                 password: this.password
             }).then(response => {
                 this.$router.push('/login')
             })
-        }
+        },
     }
 })
 </script>
