@@ -3,7 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tarefas;
+use GuzzleHttp\Psr7\Response;
+use Illuminate\Contracts\Session\Session;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response as FacadesResponse;
+use Illuminate\Support\Facades\Session as FacadesSession;
 
 class TarefasController extends Controller
 {
@@ -24,9 +28,20 @@ class TarefasController extends Controller
         return response()->json($tarefas);
     }
 
-    public function update(Request $request, $id) 
+    public function update(Request $request, Tarefas $id) 
     {
-        $tarefas = Tarefas::find($id)->update(['status' => $request->status]);
+        if(!$request->tempo){
+            $id->update(['status' => $request->status]);
+            
+        } else {
+            $id->update(['status' => $request->status, 'tempo_tarefa_finalizada' => $request->tempo]);
+
+        }
         
+    }
+    
+    public function token() 
+    {
+        return response()->json(['_token' => csrf_token()]);
     }
 }

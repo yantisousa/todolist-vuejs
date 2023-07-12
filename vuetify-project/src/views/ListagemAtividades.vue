@@ -13,10 +13,7 @@
     </v-tabs>
   </v-row>
   <v-container>
-    <v-col v-if="display" class="mx-auto" cols="5">
-      <v-alert closable :title="textoAlerta" variant="outlined"></v-alert>
-    </v-col>
-    <v-row>
+    <v-row class="block-md-column">
       <v-col v-if="tab == 0" v-for="tarefa in tarefas" cols="3">
         <v-card class="mt-6 ms-12 border" :title="tarefa.nome_tarefa" :subtitle="tarefa.tempo_tarefa">
           <v-card-actions>
@@ -26,25 +23,28 @@
       </v-col>
       <v-col v-if="tab == 1" v-for="tarefa in tarefas" cols="4">
         <v-card :loading="tarefa.loading" class="mt-6 ms-12 border" :title="tarefa.nome_tarefa"
-          :subtitle="tarefa.tempo_tarefa">
-          <v-card-actions>
-            <v-btn :disabled="disabledBotoes" @click="comecarContagem(tarefa.id)" class="mx-auto">Começar contagem</v-btn>
-            <v-btn @click="pararContagem(tarefa.id)" class="mx-auto">Terminar</v-btn>
-          </v-card-actions>
-        </v-card>
+        :subtitle="tarefa.tempo_tarefa">
+        <v-card-actions>
+          <v-btn :disabled="disabledBotoes" @click="comecarContagem(tarefa.id)" class="mx-auto">Começar contagem</v-btn>
+          <v-btn @click="pararContagem(tarefa.id)" class="mx-auto">Terminar</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-col>
+    <v-col v-if="tab == 2" v-for="tarefa in tarefas" cols="4">
+      <v-card class="mt-6 ms-12 text-center border" :title="tarefa.nome_tarefa">
+        Tempo de conclusão: <b>{{ tarefa.tempo_tarefa_finalizada }}</b> <br>
+      </v-card>
+    </v-col>
+    <v-row class="text-center mt-12" v-if="tarefas.length < 1">
+      <v-col>
+        Você ainda não tem tarefas
       </v-col>
-      <v-col v-if="tab == 2" v-for="tarefa in tarefas" cols="4">
-        <v-card class="mt-6 ms-12 text-center border" :title="tarefa.nome_tarefa">
-          Tempo de conclusão: {{ tarefa.tempo_tarefa }} <br>
-        </v-card>
-      </v-col>
-      <v-row class="text-center mt-12" v-if="tarefas.length < 1">
-        <v-col>
-          Você ainda não tem tarefas
-        </v-col>
-      </v-row>
     </v-row>
-  </v-container>
+  </v-row>
+</v-container>
+<v-col v-if="display" class="position-absolute " style="right: 0; bottom: 0;" cols="3">
+  <v-alert closable :title="textoAlerta" variant="outlined"></v-alert>
+</v-col>
 </template>
 <script >
 import { defineComponent } from 'vue'
@@ -62,12 +62,14 @@ export default defineComponent({
       textoAlerta: '',
       display: false,
       cronometro: '',
-      tempoInicial: '',
-      tempoFinal: ''
+      tempoInicial: 0,
+      tempoFinal: '',
+      _token: ''
     }
   },
   mounted() {
-    this.exibirAtividadesPorStatus()
+    this.exibirAtividadesPorStatus(),
+    this.token()
   },
   methods: {
     exibirAtividadesPorStatus() {
@@ -85,7 +87,8 @@ export default defineComponent({
       if (this.tab == 0) {
         this.mudancaStatus = 1
         axios.put(`http://127.0.0.1:8000/api/update/tarefa/${id}`, {
-          status: this.mudancaStatus
+          status: this.mudancaStatus,
+          _token: this._token
         }).then(response => {
           let novasAtividadesAposIniciar = this.tarefas.filter(tarefa => tarefa.id != id)
           this.tarefas = novasAtividadesAposIniciar
@@ -146,10 +149,40 @@ export default defineComponent({
       }, 1000);
     },
     pararContagem(id) {
+      this.mudancaStatus = 2
       const index = this.tarefas.findIndex((tarefa) => tarefa.id == id)
       clearInterval(this.cronometro)
       this.tempoFinal = this.tarefas[index].tempo_tarefa
-      console.log(typeof this.tempoInicial, typeof this.tempoFinal);
+      this.tarefas[index].loading = false
+
+
+      let minutosTempoInicial = this.tempoInicial.substr(0, 2)
+      let minutosTempoFinal = this.tempoInicial.substr(0, 2)
+      minutosTempoInicial = parseInt(minutosTempoInicial)
+      minutosTempoFinal = parseInt(minutosTempoFinal)
+      let resultadoMinutosTotais = minutosTempoFinal - minutosTempoInicial
+
+      let segundosTempoInicial = this.tempoInicial.substr(3, 5)
+      let segundosTempoFinal = this.tempoFinal.substr(3, 5)
+      let segundosTotais = segundosTempoInicial - segundosTempoFinal;
+      let tempoTotalFinal = resultadoMinutosTotais + 'm e ' + segundosTotais + 's';
+
+      console.log(tempoTotalFinal);
+      axios.put(`http://127.0.0.1:8000/api/update/tarefa/${id}`, {
+        status: this.mudancaStatus,
+        tempo: tempoTotalFinal
+      }).then(response => {
+        let novasAtividadesAposIniciar = this.tarefas.filter(tarefa => tarefa.id != id)
+        this.tarefas = novasAtividadesAposIniciar
+      })
+
+      let tempoTotal = new Date();
+      tempoTotal.setMinutes()
+    },
+    async token () {
+      await axios.get('http://127.0.0.1:8000/api/token').then(response => {
+        this._token = response.data._token
+      })
     }
   },
   computed: {

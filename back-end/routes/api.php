@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\TarefasController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,3 +22,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 Route::post('/cadastro/tarefa', [TarefasController::class, 'store']);
 Route::get('/index/tarefa/{id}', [TarefasController::class, 'index']);
 Route::put('/update/tarefa/{id}', [TarefasController::class, 'update']);
+
+
+Route::post('/store/user', [UserController::class, 'store']);
+Route::get('/login', [UserController::class, 'login']);
+Route::get('/token', [TarefasController::class, 'token']);
