@@ -23,32 +23,32 @@
       </v-col>
       <v-col v-if="tab == 1" v-for="tarefa in tarefas" cols="4">
         <v-card :loading="tarefa.loading" class="mt-6 ms-12 border" :title="tarefa.nome_tarefa"
-        :subtitle="tarefa.tempo_tarefa">
-        <v-card-actions>
-          <v-btn :disabled="disabledBotoes" @click="comecarContagem(tarefa.id)" class="mx-auto">Começar contagem</v-btn>
-          <v-btn @click="pararContagem(tarefa.id)" class="mx-auto">Terminar</v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-col>
-    <v-col v-if="tab == 2" v-for="tarefa in tarefas" cols="4">
-      <v-card class="mt-6 ms-12 text-center border" :title="tarefa.nome_tarefa">
-        Tempo de conclusão: <b>{{ tarefa.tempo_tarefa_finalizada }}</b> <br>
-      </v-card>
-    </v-col>
-    <v-row class="text-center mt-12" v-if="tarefas.length < 1">
-      <v-col>
-        Você ainda não tem tarefas
+          :subtitle="tarefa.tempo_tarefa">
+          <v-card-actions>
+            <v-btn :disabled="disabledBotoes" @click="comecarContagem(tarefa.id)" class="mx-auto">Começar contagem</v-btn>
+            <v-btn @click="pararContagem(tarefa.id)" class="mx-auto">Terminar</v-btn>
+          </v-card-actions>
+        </v-card>
       </v-col>
+      <v-col v-if="tab == 2" v-for="tarefa in tarefas" cols="4">
+        <v-card class="mt-6 ms-12 text-center border" :title="tarefa.nome_tarefa">
+          Tempo de conclusão: <b>{{ tarefa.tempo_tarefa_finalizada }}</b> <br>
+        </v-card>
+      </v-col>
+      <v-row class="text-center mt-12" v-if="tarefas.length < 1">
+        <v-col>
+          Você ainda não tem tarefas
+        </v-col>
+      </v-row>
     </v-row>
-  </v-row>
-</v-container>
-<v-col v-if="display" class="position-absolute " style="right: 0; bottom: 0;" cols="3">
-  <v-alert closable :title="textoAlerta" variant="outlined"></v-alert>
-</v-col>
+  </v-container>
+  <v-col v-if="display" class="position-absolute " style="right: 0; bottom: 0;" cols="3">
+    <v-alert closable :title="textoAlerta" variant="outlined"></v-alert>
+  </v-col>
 </template>
 <script >
 import { defineComponent } from 'vue'
-import axios from 'axios'
+import api from '@/api/api.js'
 export default defineComponent({
   name: 'App',
   data() {
@@ -69,12 +69,21 @@ export default defineComponent({
   },
   mounted() {
     this.exibirAtividadesPorStatus(),
-    this.token()
+      this.token()
   },
   methods: {
-    exibirAtividadesPorStatus() {
-      axios.get(`http://127.0.0.1:8000/api/index/tarefa/${this.tab}`,{
-      }).then(response => {
+    async exibirAtividadesPorStatus() {
+      const token = localStorage.getItem('token')
+      this._token = token
+      await api.get(`/index/tarefa/${this.tab}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token
+            // Outros headers, se necessário
+          }
+        }
+      ).then(response => {
         this.tarefas = response.data
       })
 
@@ -87,10 +96,19 @@ export default defineComponent({
       }, 1000);
       if (this.tab == 0) {
         this.mudancaStatus = 1
-        axios.put(`http://127.0.0.1:8000/api/update/tarefa/${id}`, {
-          status: this.mudancaStatus,
-          _token: this._token
-        }).then(response => {
+        api.put(`/update/tarefa/${id}`,
+          {
+            status: this.mudancaStatus,
+            _token: this._token
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + this._token
+              // Outros headers, se necessário
+            }
+          }
+        ).then(response => {
           let novasAtividadesAposIniciar = this.tarefas.filter(tarefa => tarefa.id != id)
           this.tarefas = novasAtividadesAposIniciar
         })
@@ -128,9 +146,17 @@ export default defineComponent({
       this.cronometro = setInterval(() => {
         this.tarefas[index].tempo_tarefa = novoMinuto + ':' + --novoSegundo
         if (novoMinuto < 1 && novoSegundo == 0) {
-          axios.put(`http://127.0.0.1:8000/api/update/tarefa/${id}`, {
+          api.put(`/update/tarefa/${id}`, {
             status: this.mudancaStatus
-          }).then(response => {
+          },
+          {
+            headers: {
+              'Authorization': 'Bearer ' + this._token,
+              'Content-Type': 'application/json'
+            }
+          }
+          
+          ).then(response => {
             let novasAtividadesAposIniciar = this.tarefas.filter(tarefa => tarefa.id != id)
             this.tarefas = novasAtividadesAposIniciar
           })
@@ -168,11 +194,18 @@ export default defineComponent({
       let segundosTotais = segundosTempoInicial - segundosTempoFinal;
       let tempoTotalFinal = resultadoMinutosTotais + 'm e ' + segundosTotais + 's';
 
-      console.log(tempoTotalFinal);
-      axios.put(`http://127.0.0.1:8000/api/update/tarefa/${id}`, {
+      api.put(`/update/tarefa/${id}`, {
         status: this.mudancaStatus,
         tempo: tempoTotalFinal
-      }).then(response => {
+      },
+      {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + this._token
+            // Outros headers, se necessário
+          }
+      }
+      ).then(response => {
         let novasAtividadesAposIniciar = this.tarefas.filter(tarefa => tarefa.id != id)
         this.tarefas = novasAtividadesAposIniciar
       })
@@ -180,8 +213,8 @@ export default defineComponent({
       let tempoTotal = new Date();
       tempoTotal.setMinutes()
     },
-    async token () {
-      await axios.get('http://127.0.0.1:8000/api/token').then(response => {
+    async token() {
+      await api.get('/token').then(response => {
         this._token = response.data._token
       })
     }

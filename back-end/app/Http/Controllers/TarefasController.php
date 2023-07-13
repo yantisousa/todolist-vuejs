@@ -16,6 +16,7 @@ class TarefasController extends Controller
     public function store(Request $request)
     {
         Tarefas::create([
+            'user_id' => Auth::user()->id,
             'nome_tarefa' => $request->nome,
             'tempo_tarefa' => $request->tempo,
             'desc' => $request->descricao,
@@ -26,8 +27,7 @@ class TarefasController extends Controller
     
     public function index($id) 
     {
-        dd(Auth::user());
-        $tarefas = Tarefas::whereStatus($id)->where('user_id', Auth::user())->get();
+        $tarefas = Tarefas::whereStatus($id)->where('user_id', Auth::user()->id)->get();
         return response()->json($tarefas);
     }
 

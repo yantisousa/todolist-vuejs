@@ -16,13 +16,19 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->group( function () {
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+    return $request->user();
+});
+
+Route::middleware('auth:sanctum')->group(function(){
+
     Route::post('/cadastro/tarefa', [TarefasController::class, 'store']);
     Route::get('/index/tarefa/{id}', [TarefasController::class, 'index']);
     Route::put('/update/tarefa/{id}', [TarefasController::class, 'update']);
     Route::get('/token', [TarefasController::class, 'token']);
     Route::get('/logout', [UserController::class, 'logout']);
-    Route::get('/perfil', [UserController::class, 'perfil']);
+    Route::get('/usuarioLogado', [UserController::class, 'verificacaoUsuarioLogado']);
 });
+Route::get('/perfil', [UserController::class, 'perfil']);
 Route::post('/store/user', [UserController::class, 'store']);
 Route::post('/login', [UserController::class, 'login']);

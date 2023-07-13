@@ -2,47 +2,62 @@
   <v-app :theme="classeParaModoEscuro">
     <v-app-bar flat color="#2196F3">
       <v-app-bar-title class="text-h6">My to-do List</v-app-bar-title>
-
+      <v-list class="bg-black">
+        <v-list-item prepend-avatar="https://randomuser.me/api/portraits/women/85.jpg" title="USER"
+          subtitle="sandra_a88@gmailcom"></v-list-item>
+      </v-list>
     </v-app-bar>
     <v-main>
       <router-view></router-view>
-    
+
       <v-container>
       </v-container>
-    </v-main>
-    <v-navigation-drawer>
-      <v-card class="mx-auto" max-width="300">
-        <v-list>
-          <v-list-subheader>Menu</v-list-subheader>
-          <hr>
-          <v-list-item><router-link style="text-decoration: none;" to="/"> Minhas Tarefas</router-link></v-list-item>
-          <v-divider :thickness="2"></v-divider>
-          <v-list-item><router-link style="text-decoration: none;" to="/cadastro">Cadastrar Tarefa</router-link></v-list-item>
-          <v-divider :thickness="2"></v-divider>
-          <v-list-item @click="logout()">Sair da conta</v-list-item>
-          <v-divider :thickness="2"></v-divider>
-          <v-list-item><v-switch label="Modo Escuro" @click="mudarParaModoEscuro"
-              v-model="checkbox"></v-switch></v-list-item>
-        </v-list>
-      </v-card>
+    </v-main> 
+    <v-navigation-drawer >
+      <Navigation v-if="store.state.usuarioLogado" />
+
     </v-navigation-drawer>
-    <!-- <v-date-picker v-model="picker"></v-date-picker> -->
+
   </v-app>
 </template>
 <script >
 import { defineComponent } from 'vue'
-import axios from 'axios'
+import api from '@/api/api.js'
+import Navigation from './views/Navigation.vue'
+import { useStore } from 'vuex'
 export default defineComponent({
   name: 'App',
+  components: {
+    Navigation
+  },
   data() {
     return {
-      picker: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
       tab: null,
       checkbox: false,
-      classeParaModoEscuro: ''
+      classeParaModoEscuro: '',
+      token: "",
+      usuarioLogado: false
     }
   },
+  mounted() {
+    this.verificacaoUsuarioLogado()
+  },
   methods: {
+    verificacaoUsuarioLogado() {
+      let token = localStorage.getItem('token')
+      api.get('/usuarioLogado', {
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json'
+        }
+      }).then(response => {
+        this.store.commit('INSERE_USUARIO_LOGADO', response.data)
+        console.log(response.data);
+      }).catch(error => {
+        this.store.commit('INSERE_USUARIO_LOGADO', false)
+      })
+    },
+
     mudarParaModoEscuro() {
       if (this.checkbox == false) {
         this.classeParaModoEscuro = 'dark'
@@ -50,10 +65,27 @@ export default defineComponent({
         this.classeParaModoEscuro = ''
       }
     },
-    logout () {
-      axios.get('http://127.0.0.1:8000/api/logout').then(respose => {
-        console.log('deslogou');
+    logout() {
+      this.token = localStorage.getItem('token')
+      api.get('/logout',
+        {
+          headers: {
+            "Authorization": "Bearer " + this.token,
+            "Content-Type": 'application/json'
+          }
+        }
+      ).then(respose => {
+        this.$router.push('/login')
+        localStorage.removeItem('token')
+        this.token = ''
       })
+    }
+
+  },
+  setup() {
+    const store = useStore();
+    return {
+      store
     }
   }
 })

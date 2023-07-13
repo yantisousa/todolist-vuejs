@@ -7,8 +7,10 @@ export default createStore({
     },
     mutations: {
         'INSERE_USUARIO_LOGADO'(state, payload){
-            console.log(payload);
             state.usuarioLogado = payload
+        },
+        'REMOVE_USUARIO_LOGADO'(state){
+            state.usuarioLogado = []
         }
     }
 })

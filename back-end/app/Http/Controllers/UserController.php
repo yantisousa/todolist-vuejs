@@ -16,7 +16,7 @@ class UserController extends Controller
     {
         if(Auth::attempt(['email' => $request->email, 'password' => $request->password])){
             $token = $request->user()->createToken('jwt');
-            return response()->json(['token' => $token->plainTextToken]);
+            return response()->json($token->plainTextToken);
         }
     }
     public function logout(Request $request)
@@ -30,5 +30,9 @@ class UserController extends Controller
         $user = Auth::user();
         dd($user);
         return response()->json($user);
+    }
+    public function verificacaoUsuarioLogado()
+    {
+        return response()->json(Auth::check());
     }
 }

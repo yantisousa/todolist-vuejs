@@ -32,7 +32,7 @@
 </template>
 <script>
 import { defineComponent } from 'vue';
-import axios from 'axios'
+import api from '@/api/api.js'
 export default defineComponent({
     name: 'CadastroUsuario',
     data() {
@@ -48,7 +48,7 @@ export default defineComponent({
     },
     methods: {
         async token () {
-            await axios.get('http://127.0.0.1:8000/sanctum/csrf-cookie',
+            await api.get('http://127.0.0.1:8000/sanctum/csrf-cookie',
             {
                 withCredentials: true
             }
@@ -58,7 +58,7 @@ export default defineComponent({
             })
         },
         cadastrar() {
-            axios.post('http://127.0.0.1:8000/api/store/user', {
+            api.post('/store/user', {
              
                 name: this.nome, 
                 email: this.email,

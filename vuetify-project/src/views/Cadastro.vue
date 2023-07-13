@@ -18,14 +18,15 @@
                     <v-btn type="submit" class="bg-grey">Cadastrar</v-btn>
                 </v-col>
             </v-row>
-            <v-alert v-if="alert" v-model="alert" text="Tarefa cadastrada com sucesso!" class="bg-green text-center"></v-alert>
+            <v-alert v-if="alert" v-model="alert" text="Tarefa cadastrada com sucesso!"
+                class="bg-green text-center"></v-alert>
 
         </form>
     </v-container>
 </template>
 <script>
 import { defineComponent } from 'vue';
-import axios from 'axios'
+import api from '@/api/api.js'
 export default defineComponent({
     name: 'Cadastro',
     data() {
@@ -38,11 +39,23 @@ export default defineComponent({
     },
     methods: {
         salvar() {
-            axios.post('http://127.0.0.1:8000/api/cadastro/tarefa', {
-                nome: this.nomeDaAtividade,
-                tempo: this.tempoDaAtividade,
-                descricao: this.descricaoAtividade
-            }).then(response => {
+            let token = localStorage.getItem('token')
+            console.log(token);
+            api.post('/cadastro/tarefa',
+                {
+
+                    nome: this.nomeDaAtividade,
+                    tempo: this.tempoDaAtividade,
+                    descricao: this.descricaoAtividade
+                },
+                {
+                    headers: {
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                        // Outros headers, se necessário
+                    }
+                },
+            ).then(response => {
                 this.nomeDaAtividade = ''
                 this.tempoDaAtividade = ''
                 this.alert = true
